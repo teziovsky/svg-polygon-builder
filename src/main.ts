@@ -1,5 +1,5 @@
 let count = 2;
-let archive = ["<svg viewBox=\"0 0 100 100\" preserveAspectRatio=\"none\">\n	<polygon points=\"\" style=\"fill: rgb(255,0,0); stroke: rgb(255,0,0); stroke-width: 0.3;\"></polygon>\n</svg>"];
+let archive = ["<svg viewBox=\"0 0 100 100\" preserveAspectRatio=\"none\">\n<polygon points=\"\" style=\"fill: rgb(255,0,0); stroke: rgb(255,0,0); stroke-width: 0.3;\"></polygon>\n</svg>"];
 
 window.onload = function() {
   const changeColorTrigger = document.getElementById("pColor");
@@ -84,25 +84,25 @@ function FFileSelect(evt) {
 document.getElementById("iFile")!.addEventListener("change", FFileSelect, false);
 
 function FAddPoint(el) {
-  var maxX = el.clientWidth;                    // Get the canvas size
-  var maxY = el.clientHeight;
-  var cx = event.clientX;                       // Get the cursor coordinates
-  var cy = event.clientY;
+  let maxX = el.clientWidth;                    // Get the canvas size
+  let maxY = el.clientHeight;
+  let cx = event.clientX;                       // Get the cursor coordinates
+  let cy = event.clientY;
 
-  var rect = el.getBoundingClientRect();        // position on the screen
-  var py = rect.top;                            // from top edge
-  var px = rect.left;
+  let rect = el.getBoundingClientRect();        // position on the screen
+  let py = rect.top;                            // from top edge
+  let px = rect.left;
 
-  var ry = cy - py;                             // Coordinates relate to parent
-  var rx = cx - px;
+  let ry = cy - py;                             // Coordinates relate to parent
+  let rx = cx - px;
 
-  var rry = Math.round(ry / maxY * 1000) / 10;  // Coord. relate to parent and image size
-  var rrx = Math.round(rx / maxX * 1000) / 10;
+  let rry = Math.round(ry / maxY * 1000) / 10;  // Coord. relate to parent and image size
+  let rrx = Math.round(rx / maxX * 1000) / 10;
 
-  var svgRoot = el.getElementsByTagName("svg")[0];
-  var polel = el.getElementsByTagName("polygon")[0];
-  var clist = polel.points;
-  var point = svgRoot.createSVGPoint();
+  let svgRoot = el.getElementsByTagName("svg")[0];
+  let polel = el.getElementsByTagName("polygon")[0];
+  let clist = polel.points;
+  let point = svgRoot.createSVGPoint();
   point.x = rrx;
   point.y = rry;
 
@@ -112,10 +112,10 @@ function FAddPoint(el) {
 }
 
 function FDelPoint() {
-  var el = document.getElementById("paternImage");
-  var polel = el.getElementsByTagName("polygon")[0];
-  var clist = polel.points;
-  var Np = clist.length;
+  let el = document.getElementById("paternImage");
+  let polel = el.getElementsByTagName("polygon")[0];
+  let clist = polel.points;
+  let Np = clist.length;
   polel.points.removeItem(Np - 1);
   FShowResult();
 }
@@ -123,16 +123,16 @@ function FDelPoint() {
 
 // Show SVG code
 function FShowResult() {
-  var el = document.getElementById("paternImage");
-  var svgRoot = el.getElementsByTagName("svg")[0];
-  var answ = "<svg viewBox=\"0 0 100 100\" preserveAspectRatio=\"none\">";
+  let el = document.getElementById("paternImage");
+  let svgRoot = el.getElementsByTagName("svg")[0];
+  let answ = "<svg viewBox=\"0 0 100 100\" preserveAspectRatio=\"none\">";
   answ += svgRoot.innerHTML;
   answ += "</svg>";
 
-  // var pretxt = svgRoot.innerHTML;
-  // var textArray = pretxt.split("<");
-  // var answ = '<code><</code><code>svg viewBox="0 0 100 100" preserveAspectRatio="none"</code><code>>';
-  // for (var i = 0; i < textArray.length; i++) {
+  // let pretxt = svgRoot.innerHTML;
+  // let textArray = pretxt.split("<");
+  // let answ = '<code><</code><code>svg viewBox="0 0 100 100" preserveAspectRatio="none"</code><code>>';
+  // for (let i = 0; i < textArray.length; i++) {
   // 	answ += '<code><</code>' + textArray[i]
   // }
   // answ += '<</code><code>/svg</code><code>></code>'
@@ -144,7 +144,7 @@ function FShowResult() {
 
 // Change SVG polygon on text input
 function FChangeSvg(el) {
-  var answ = el.value;
+  let answ = el.value;
   answ = answ.replace(new RegExp("&lt;", "g"), "<");
   answ = answ.replace(new RegExp("&gt;", "g"), ">");
   document.getElementById("svgContainer").innerHTML = answ;
@@ -154,9 +154,9 @@ function FChangeSvg(el) {
 
 
 function FChangeColor() {
-  var el = document.getElementsByTagName("polygon")[0];
-  var colr = document.getElementById("pColor").value;
-  var filEl = document.getElementById("pFill");
+  let el = document.getElementsByTagName("polygon")[0];
+  let colr = document.getElementById("pColor").value;
+  let filEl = document.getElementById("pFill");
   if (filEl.checked == true) {
     el.style.fill = colr;
     el.style.stroke = colr;
@@ -168,9 +168,9 @@ function FChangeColor() {
 
 
 function FZoomIn() {
-  var el = document.getElementById("paternImage");
-  var oWidth = el.clientWidth;
-  var nWidth = Math.round(oWidth * 1.1);
+  let el = document.getElementById("paternImage");
+  let oWidth = el.clientWidth;
+  let nWidth = Math.round(oWidth * 1.1);
   el.style.width = nWidth + "px";
   if (nWidth > el.parentNode.clientWidth) {
     el.parentNode.style.display = "block";
@@ -178,9 +178,9 @@ function FZoomIn() {
 }
 
 function FZoomOut() {
-  var el = document.getElementById("paternImage");
-  var oWidth = el.clientWidth;
-  var nWidth = Math.round(oWidth / 1.1);
+  let el = document.getElementById("paternImage");
+  let oWidth = el.clientWidth;
+  let nWidth = Math.round(oWidth / 1.1);
   el.style.width = nWidth + "px";
   if (nWidth < el.parentNode.clientWidth) {
     el.parentNode.style.display = "flex";
@@ -194,8 +194,8 @@ function FArchiveOperations(answ) {
     archive.push(answ);
     count = archive.length;
   } else {
-    var dt = archive.length - count;
-    for (var i = 0; i < dt; i++) {
+    let dt = archive.length - count;
+    for (let i = 0; i < dt; i++) {
       archive.pop();
     }
     archive.push(answ);
@@ -205,18 +205,18 @@ function FArchiveOperations(answ) {
 
 
 function FPrevOperation(el) {
-  var Na = archive.length;
+  let Na = archive.length;
   count -= 1;
   if (count > 1) {
-    var incount = count - 1;
-    var t = archive[incount];
+    let incount = count - 1;
+    let t = archive[incount];
     document.getElementById("svgContainer").innerHTML = t;
     document.getElementById("resultHtml").innerHTML = t;
     el.classList.remove("not-active");
     el.nextElementSibling.classList.remove("not-active");
   } else if (count == 1) {
-    var incount = count - 1;
-    var t = archive[incount];
+    let incount = count - 1;
+    let t = archive[incount];
     document.getElementById("svgContainer").innerHTML = t;
     document.getElementById("resultHtml").innerHTML = t;
     el.classList.add("not-active");
@@ -228,19 +228,19 @@ function FPrevOperation(el) {
 }
 
 function FNextOperation(el) {
-  var Na = archive.length;
+  let Na = archive.length;
   count += 1;
   if (count < Na) {
-    var incount = count - 1;
-    var t = archive[incount];
+    let incount = count - 1;
+    let t = archive[incount];
     document.getElementById("svgContainer").innerHTML = t;
     document.getElementById("resultHtml").innerHTML = t;
     el.classList.remove("not-active");
     el.previousElementSibling.classList.remove("not-active");
 
   } else if (count == Na) {
-    var incount = count - 1;
-    var t = archive[incount];
+    let incount = count - 1;
+    let t = archive[incount];
     document.getElementById("svgContainer").innerHTML = t;
     document.getElementById("resultHtml").innerHTML = t;
     el.classList.add("not-active");
@@ -252,11 +252,11 @@ function FNextOperation(el) {
 }
 
 function FClearOperation() {
-  var el = document.getElementById("paternImage");
-  var polel = el.getElementsByTagName("polygon")[0];
-  var clist = polel.points;
-  var Np = clist.length;
-  for (var p = Np - 1; p >= 0; p--) {
+  let el = document.getElementById("paternImage");
+  let polel = el.getElementsByTagName("polygon")[0];
+  let clist = polel.points;
+  let Np = clist.length;
+  for (let p = Np - 1; p >= 0; p--) {
     polel.points.removeItem(p);
   }
   FShowResult();
