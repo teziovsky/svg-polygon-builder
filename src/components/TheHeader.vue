@@ -4,8 +4,8 @@ import TheButton from "@/components/TheButton.vue";
 import { ImageObject } from "@/types/image.ts";
 
 const emit = defineEmits<{
-  (event: "updateImage", imageObject: ImageObject): void,
-  (event: "clearPoints"): void,
+  (event: "updateImage", imageObject: ImageObject): void;
+  (event: "clearPoints"): void;
 }>();
 
 const file = ref<File | null>(null);
@@ -32,8 +32,6 @@ function handleChangeFile(event: Event) {
   }
 }
 
-
-
 function zoomIn() {
   console.log("zoomIn");
 }
@@ -44,10 +42,10 @@ function zoomOut() {
 </script>
 
 <template>
-  <header class="container flex items-center justify-between gap-2 py-1 px-2">
+  <header class="container flex items-center justify-between gap-2 px-2 py-1">
     <form>
       <label class="inline-block" for="file">Background image</label>
-      <input id="file" accept="image/*" name="file" type="file" @change="handleChangeFile">
+      <input id="file" accept="image/*" name="file" type="file" @change="handleChangeFile" />
     </form>
 
     <div>
@@ -55,7 +53,5 @@ function zoomOut() {
       <TheButton @click="zoomOut">-</TheButton>
       <TheButton @click="zoomIn">+</TheButton>
     </div>
-
-
   </header>
 </template>
