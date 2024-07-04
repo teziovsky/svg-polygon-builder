@@ -7,54 +7,10 @@
     <meta content="teziovsky" name="author" />
     <meta content="Draw SVG polygon over image" name="description" />
     <title>SVG Polygon Builder</title>
-    <link href="/src/assets/style.css" rel="stylesheet">
+    <link href="/src/assets/tailwind.css" rel="stylesheet">
   </head>
-  <body>
-    <header>
-      <form class="control-group">
-        <label for="iFile">Background image</label>
-        <input id="iFile" name="userfile" type="file" />
-        <div id="disp_tmp_path"></div>
-      </form>
-      <form class="control-group">
-        <label for="pColor">Color</label>
-        <input id="pColor" name="favcolor" type="color" value="#ff0000" />
-        <input checked="checked" id="pFill" name="filprop" type="checkbox" />
-        <label for="pFill">fill</label>
-      </form>
-      <div class="control-group">
-        <span>Zoom</span>
-        <button id="zoomOut">-</button>
-        <button id="zoomIn">+</button>
-      </div>
-      <div class="control-group">
-        <span>Operations </span>
-        <button id="prevOperation">&lt;&lt;Prev</button>
-        <button id="nextOperation">Next&gt;&gt;</button>
-        <button id="clearOperation">Clear</button>
-      </div>
-    </header>
-    <main>
-      <div class="canvas-wraper content">
-        <div id="paternImage">
-          <img alt="" height="auto" src="/img1.jpg" width="100%" />
-          <div id="svgContainer">
-            <svg preserveAspectRatio="none" viewBox="0 0 100 100">
-              <polygon
-                points="31.4 83.8 10.5 83.3 21.6 52.4"
-                style="fill: rgb(255,0,0); stroke: rgb(255,0,0); stroke-width: 0.3;" />
-            </svg>
-          </div>
-        </div>
-      </div>
-      <div class="content">
-        <label for="resultHtml" style="margin-bottom: 8px;">Copy or edit your path code here:</label>
-        <textarea id="resultHtml" rows="10"></textarea>
-      </div>
-    </main>
-    <footer>
-      Jakub Soboczyński
-    </footer>
+  <body class="bg-slate-900 text-slate-50 touch-none">
+    <div id="app"></div>
     <script src="/src/main.ts" type="module"></script>
   </body>
 </html>

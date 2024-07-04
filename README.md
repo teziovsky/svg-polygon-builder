@@ -1,8 +1,5 @@
-# SVG-Polygon-Builder
+# Vue 3 + TypeScript + Vite
 
-Draw path over image.
+This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
 
-The Builder generete HTML code of SVG polygon in relative coordinates according to background image width and height. It is useful for purposes of highlight parts of image, that need to be implemented in responsive web page.
-
-Demo page:
-http://meteo-is.in.ua/projects/polygon-builder/
+Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
