@@ -1,9 +1,6 @@
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, ref } from "vue";
-import TheHeader from "@/components/TheHeader.vue";
-import TheFooter from "@/components/TheFooter.vue";
+import { computed, onBeforeUnmount, ref, watchEffect } from "vue";
 import TheButton from "@/components/TheButton.vue";
-import { ImageObject } from "@/types/image.ts";
 
 const DEFAULT_FILL_COLOR = "#FF0000";
 
@@ -28,14 +25,13 @@ const polygons = ref([
   },
 ]);
 
-function handleUpdateImage(imgObject: ImageObject) {
-  imageSrc.value = imgObject.src;
-  imageWidth.value = imgObject.width;
-  imageHeight.value = imgObject.height;
-}
+watchEffect(() => {
+  if (!polygons.value.length) {
+    activeElementId.value = null;
+  }
+});
 
 function clearPoints() {
-  activeElementId.value = null;
   polygons.value = [];
 }
 
@@ -63,7 +59,7 @@ function deletePolygon(polygonId: number) {
 }
 
 function addPoint(event: MouseEvent) {
-  if (!activeElementId.value) {
+  if (!polygons.value.length) {
     addPolygon();
   }
 
@@ -101,6 +97,60 @@ function removePoint() {
   }
 }
 
+const file = ref<File | null>(null);
+
+function handleChangeFile(event: Event) {
+  const target = event.target as HTMLInputElement;
+  const files = target.files;
+
+  if (files) {
+    file.value = files[0];
+
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(files[0]);
+
+    img.onload = () => {
+      imageSrc.value = objectUrl;
+      imageWidth.value = img.width;
+      imageHeight.value = img.height;
+    };
+
+    img.src = objectUrl;
+  }
+}
+
+const imageWrapper = ref<HTMLDivElement | null>(null);
+
+function zoomIn() {
+  if (imageWrapper.value) {
+    const actualScale = imageWrapper.value.style.scale;
+
+    if (actualScale) {
+      const scale = parseFloat(actualScale) + 0.1;
+      imageWrapper.value.style.scale = `${scale}`;
+    } else {
+      imageWrapper.value.style.scale = "1.1";
+    }
+  }
+}
+
+function zoomOut() {
+  if (imageWrapper.value) {
+    const actualScale = imageWrapper.value.style.scale;
+
+    if (actualScale) {
+      const scale = parseFloat(actualScale) - 0.1;
+      console.log("(App.vue:145) scale: ", scale);
+
+      if (scale < 1) return;
+
+      imageWrapper.value.style.scale = `${scale}`;
+    } else {
+      imageWrapper.value.style.scale = "1";
+    }
+  }
+}
+
 const copied = ref(false);
 let copyTimeout: ReturnType<typeof setTimeout>;
 
@@ -121,38 +171,49 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <TheHeader @update-image="handleUpdateImage" />
   <main class="mb-4">
     <div
       :style="{ aspectRatio: imageAspect }"
-      class="relative mb-4 min-h-[500px]"
+      class="max-w-screen relative mb-4 h-auto max-h-screen w-full overflow-auto"
       @click="addPoint"
       @contextmenu="(e) => e.preventDefault()"
     >
-      <img :height="imageHeight" :src="imageSrc" :width="imageWidth" alt="" class="h-auto w-full object-cover" />
-      <div class="absolute inset-0 pr-[5%]" @contextmenu="removePoint">
-        <svg class="block h-full w-full cursor-copy" preserveAspectRatio="none" viewBox="0 0 100 100">
-          <polygon
-            v-for="polygon in polygons"
-            :key="polygon.id"
-            :class="[activeElementId === polygon.id ? 'opacity-80' : 'opacity-40']"
-            :points="polygon.points.join(' ')"
-            :style="{ fill: polygon.fill }"
-            class="pointer-events-none cursor-pointer stroke-2"
-          />
-        </svg>
+      <div ref="imageWrapper" class="origin-top-left transition-[scale]">
+        <img :height="imageHeight" :src="imageSrc" :width="imageWidth" alt="" class="h-auto w-full object-cover" />
+        <div class="absolute inset-0 pr-[5%]" @contextmenu="removePoint">
+          <svg class="block h-full w-full cursor-copy" preserveAspectRatio="none" viewBox="0 0 100 100">
+            <polygon
+              v-for="polygon in polygons"
+              :key="polygon.id"
+              :class="[activeElementId === polygon.id ? 'opacity-80' : 'opacity-40']"
+              :points="polygon.points.join(' ')"
+              :style="{ fill: polygon.fill }"
+              class="pointer-events-none cursor-pointer stroke-2"
+            />
+          </svg>
+        </div>
       </div>
     </div>
 
-    <div class="container">
-      <div class="flex items-center gap-2">
-        <TheButton @click="addPolygon()">Add polygon</TheButton>
-        <TheButton @click="clearPoints()">Clear</TheButton>
+    <div class="container space-y-6">
+      <div class="flex items-center justify-between gap-2">
+        <form>
+          <label class="sr-only inline-block" for="file">Background image</label>
+          <input id="file" accept="image/*" name="file" type="file" @change="handleChangeFile" />
+        </form>
+        <div class="space-x-2">
+          <TheButton @click="addPolygon()">Add polygon</TheButton>
+          <TheButton @click="clearPoints()">Clear</TheButton>
+        </div>
+        <div class="space-x-2">
+          <TheButton @click="zoomOut">-</TheButton>
+          <TheButton @click="zoomIn">+</TheButton>
+        </div>
       </div>
       <div v-for="polygon in polygons" :key="polygon.id" class="flex items-center justify-between">
         <p>{{ polygon.id }} - {{ polygon.points.join(" ") }}</p>
         <div>
-          <label class="label" for="fill">Fill</label>
+          <label class="sr-only" for="fill">Fill</label>
           <input id="fill" v-model="polygon.fill" name="fill" type="color" />
         </div>
         <div class="flex items-center gap-2">
@@ -163,5 +224,4 @@ onBeforeUnmount(() => {
       </div>
     </div>
   </main>
-  <TheFooter />
 </template>
