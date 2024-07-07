@@ -8,7 +8,7 @@ const props = defineProps<Props>();
 
 <template>
   <button
-    class="rounded-lg border bg-slate-900 px-2 py-1 text-slate-50 transition-colors hocus:bg-slate-800"
+    class="rounded-lg border border-slate-50 bg-slate-900 px-2 py-1 text-slate-50 transition-colors hocus:bg-slate-800"
     v-bind="props"
   >
     <slot />
