@@ -8,7 +8,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --port 8010",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
     "lint": "eslint src --fix",
@@ -16,12 +16,14 @@
     "fix": "bun run lint && bun run format"
   },
   "dependencies": {
+    "radix-vue": "^1.9.0",
     "vue": "^3.4.31"
   },
   "devDependencies": {
-    "@vue/compiler-sfc": "^3.4.31",
     "@eslint/js": "^9.6.0",
+    "@tailwindcss/forms": "^0.5.7",
     "@vitejs/plugin-vue": "^5.0.5",
+    "@vue/compiler-sfc": "^3.4.31",
     "autoprefixer": "^10.4.19",
     "eslint": "^9.6.0",
     "eslint-config-prettier": "^9.1.0",
