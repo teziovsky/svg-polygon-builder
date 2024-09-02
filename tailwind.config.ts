@@ -9,6 +9,12 @@ export default {
       container: {
         center: true,
       },
+      maxHeight: {
+        image: "calc(100vh - 5rem)",
+      },
+      gridTemplateColumns: {
+        polygon: "1fr auto auto",
+      },
       keyframes: {
         overlayShow: {
           from: { opacity: "0" },

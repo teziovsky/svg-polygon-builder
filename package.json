@@ -16,7 +16,9 @@
     "fix": "bun run lint && bun run format"
   },
   "dependencies": {
+    "clsx": "^2.1.1",
     "radix-vue": "^1.9.0",
+    "tailwind-merge": "^2.5.2",
     "vue": "^3.4.31"
   },
   "devDependencies": {
