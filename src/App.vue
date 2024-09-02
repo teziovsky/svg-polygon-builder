@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import TheButton from "@/components/TheButton.vue";
 import {
   AlertDialogAction,
   AlertDialogCancel,
@@ -6,12 +7,20 @@ import {
   AlertDialogDescription,
   AlertDialogOverlay,
   AlertDialogPortal,
+  Label,
   AlertDialogRoot,
   AlertDialogTitle,
   AlertDialogTrigger,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogOverlay,
+  DialogPortal,
+  DialogRoot,
+  DialogTitle,
+  DialogTrigger,
 } from "radix-vue";
 import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from "vue";
-import TheButton from "@/components/TheButton.vue";
 
 const DEFAULT_FILL_COLOR = "#FF0000";
 
@@ -33,7 +42,6 @@ type Polygon = {
   points: string[];
 };
 
-const dialogElementId = ref<Polygon["id"] | null>(null);
 const activeElementId = ref<Polygon["id"]>(1);
 const polygons = ref([
   {
@@ -59,17 +67,46 @@ function setActivePolygon(polygonId: Polygon["id"]) {
 
 function addPolygon() {
   const newId = (polygons.value.at(-1)?.id || 0) + 1;
-  polygons.value.push({ id: newId, fill: DEFAULT_FILL_COLOR, points: [] });
+  const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+  polygons.value.push({ id: newId, fill: randomColor, points: [] });
   activeElementId.value = newId;
 }
+
+const editDialogElementId = ref<Polygon["id"] | null>(null);
+const editDialogPoints = ref("");
+
+function closeUpdatePolygonDialog() {
+  editDialogElementId.value = null;
+  editDialogPoints.value = "";
+}
+
+function openUpdatePolygonDialog(polygonId: Polygon["id"]) {
+  editDialogElementId.value = polygonId;
+  editDialogPoints.value = polygons.value.find((polygon) => polygon.id === polygonId)?.points.join(" ") || "";
+}
+
+function updatePolygon(polygonId: Polygon["id"]) {
+  editDialogElementId.value = polygonId;
+  const index = polygons.value.findIndex((polygon) => polygon.id === polygonId);
+
+  if (index !== -1) {
+    polygons.value[index].points = editDialogPoints.value.split(" ");
+  }
+
+  closeUpdatePolygonDialog();
+}
+
+const deleteDialogElementId = ref<Polygon["id"] | null>(null);
 
 function deletePolygon(polygonId: Polygon["id"]) {
   polygons.value = polygons.value.filter((polygon) => polygon.id !== polygonId);
   setActivePolygon(polygons.value.at(-1)?.id || 1);
-  dialogElementId.value = null;
+  deleteDialogElementId.value = null;
 }
 
 const canvasRef = ref<HTMLDivElement>();
+const zoomSteps = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
+const zoomStep = ref(zoomSteps[0]);
 const zoom = ref(1);
 
 function addPoint(event: MouseEvent) {
@@ -133,15 +170,12 @@ function handleChangeFile(event: Event) {
   }
 }
 
-const steps = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
-const step = ref(steps[0]);
-
-function zoomIn() {
-  zoom.value = zoom.value + step.value;
+function zoomIn(step = zoomStep.value) {
+  zoom.value = zoom.value + step;
 }
 
-function zoomOut() {
-  const newZoom = zoom.value - step.value;
+function zoomOut(step = zoomStep.value) {
+  const newZoom = zoom.value - step;
 
   if (newZoom < 1) {
     zoom.value = 1;
@@ -167,89 +201,91 @@ function copyPoints(polygon: Polygon) {
 const numberKeys = new Set(["1", "2", "3", "4", "5", "6", "7", "8", "9"]);
 
 function handleKeyDown(event: KeyboardEvent) {
-  if (event.key === "ArrowUp") {
-    if (event.shiftKey) {
-      canvasRef.value?.scrollBy(0, -1000);
-    } else {
-      canvasRef.value?.scrollBy(0, -100);
+  const isCtrlOrMeta = event.ctrlKey || event.metaKey;
+  const scrollAmount = event.shiftKey ? 200 : 50;
+  const scrollDirections: { [key: string]: [number, number] } = {
+    ArrowUp: [0, -scrollAmount * zoom.value],
+    ArrowDown: [0, scrollAmount * zoom.value],
+    ArrowLeft: [-scrollAmount * zoom.value, 0],
+    ArrowRight: [scrollAmount * zoom.value, 0],
+  };
+
+  if (event.altKey && !isCtrlOrMeta && Object.keys(scrollDirections).includes(event.key)) {
+    event.preventDefault();
+    canvasRef.value?.scrollTo({
+      left: canvasRef.value?.scrollLeft + scrollDirections[event.key][0],
+      top: canvasRef.value?.scrollTop + scrollDirections[event.key][1],
+      behavior: "instant",
+    });
+  }
+
+  const zoomActions: { [key: string]: (step?: number) => void } = {
+    ArrowUp: zoomIn,
+    ArrowDown: zoomOut,
+  };
+
+  if (!event.altKey && isCtrlOrMeta && zoomActions[event.key]) {
+    event.preventDefault();
+    zoomActions[event.key]();
+  }
+
+  if (event.altKey && isCtrlOrMeta && event.key === "ArrowUp") {
+    event.preventDefault();
+    zoomStep.value = zoomSteps[Math.min(zoomSteps.indexOf(zoomStep.value) + 1, zoomSteps.length - 1)];
+  }
+
+  if (event.altKey && isCtrlOrMeta && event.key === "ArrowDown") {
+    event.preventDefault();
+    zoomStep.value = zoomSteps[Math.max(zoomSteps.indexOf(zoomStep.value) - 1, 0)];
+  }
+
+  if (event.key === "Escape" && !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey) {
+    event.preventDefault();
+
+    if (editDialogElementId.value) {
+      closeUpdatePolygonDialog();
+    }
+
+    if (deleteDialogElementId.value) {
+      deleteDialogElementId.value = null;
     }
   }
 
-  if (event.key === "ArrowDown") {
-    if (event.shiftKey) {
-      canvasRef.value?.scrollBy(0, 1000);
-    } else {
-      canvasRef.value?.scrollBy(0, 100);
-    }
-  }
-
-  if (event.key === "ArrowLeft") {
-    if (event.shiftKey) {
-      canvasRef.value?.scrollBy(-1000, 0);
-    } else {
-      canvasRef.value?.scrollBy(-100, 0);
-    }
-  }
-
-  if (event.key === "ArrowRight") {
-    if (event.shiftKey) {
-      canvasRef.value?.scrollBy(1000, 0);
-    } else {
-      canvasRef.value?.scrollBy(100, 0);
-    }
-  }
-
-  if (event.altKey && event.key === "ArrowUp") {
-    const nextStep = steps[steps.indexOf(step.value) + 1];
-    if (nextStep) {
-      step.value = nextStep;
-    }
-  }
-
-  if (event.altKey && event.key === "ArrowDown") {
-    const prevStep = steps[steps.indexOf(step.value) - 1];
-    if (prevStep) {
-      step.value = prevStep;
-    }
-  }
-
-  if (event.metaKey && event.key === "ArrowUp") {
-    zoomIn();
-  }
-
-  if (event.metaKey && event.key === "ArrowDown") {
-    zoomOut();
-  }
-
-  if (event.key === "Escape") {
-    if (dialogElementId.value) {
-      dialogElementId.value = null;
-    }
-  }
-
-  if (event.key === "c") {
-    clearPoints();
-  }
-
-  if (event.key === "n") {
+  if (event.key === "n" && !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey) {
+    event.preventDefault();
     addPolygon();
   }
 
-  if (event.key === "d") {
+  if (event.key === "d" && !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey) {
+    event.preventDefault();
+
     if (activeElementId.value && polygons.value.length > 1) {
-      dialogElementId.value = activeElementId.value;
+      deleteDialogElementId.value = activeElementId.value;
     }
   }
 
-  if (numberKeys.has(event.key)) {
+  if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey && numberKeys.has(event.key)) {
+    event.preventDefault();
+
     const polygonId = parseInt(event.key);
     if (isNaN(polygonId) || polygons.value.length < polygonId) return;
     setActivePolygon(polygonId);
   }
 }
 
+function handleMouseWheel(event: WheelEvent) {
+  if (event.ctrlKey || event.metaKey) {
+    if (event.deltaY < 0) {
+      zoomIn(0.1);
+    } else {
+      zoomOut(0.1);
+    }
+  }
+}
+
 onMounted(() => {
   document.addEventListener("keydown", handleKeyDown);
+  document.addEventListener("wheel", handleMouseWheel);
 });
 
 onBeforeUnmount(() => {
@@ -262,11 +298,11 @@ onBeforeUnmount(() => {
     <div
       ref="canvasRef"
       :style="{ aspectRatio: imageAspect }"
-      class="max-w-screen relative mb-4 h-auto max-h-screen w-full overflow-auto scroll-smooth"
+      class="max-w-screen relative mb-4 h-auto max-h-image w-full overflow-auto scroll-smooth"
       @click="addPoint"
       @contextmenu="(e) => e.preventDefault()"
     >
-      <div :style="{ scale: zoom }" class="origin-top-left transition-[scale]">
+      <div :style="{ scale: zoom }" class="origin-top-left transition-[scale] duration-100">
         <img :height="imageHeight" :src="imageSrc" :width="imageWidth" alt="" class="h-auto w-full object-cover" />
         <div class="absolute inset-0 pr-[5%]" @contextmenu="removePoint">
           <svg class="block h-full w-full cursor-copy" preserveAspectRatio="none" viewBox="0 0 100 100">
@@ -284,7 +320,7 @@ onBeforeUnmount(() => {
     </div>
 
     <div class="space-y-6">
-      <div class="flex items-center justify-between gap-2">
+      <div class="grid grid-cols-3 items-center gap-2">
         <form>
           <label class="sr-only inline-block" for="file">Background image</label>
           <input
@@ -296,27 +332,27 @@ onBeforeUnmount(() => {
             @change="handleChangeFile"
           />
         </form>
-        <div class="space-x-4">
+        <div class="flex items-center justify-center gap-4">
           <TheButton @click="addPolygon()">Add polygon</TheButton>
           <TheButton @click="clearPoints()">Clear</TheButton>
         </div>
-        <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center justify-end gap-4">
           <form>
             <label class="sr-only" for="step">Step</label>
             <select
               id="step"
-              v-model="step"
+              v-model="zoomStep"
               class="rounded-lg border border-slate-50 bg-slate-900 py-1 pl-2 pr-8 text-slate-50 transition-colors hocus:bg-slate-800"
               name="step"
             >
-              <option v-for="option in steps" :key="option" :value="option">{{ option }}</option>
+              <option v-for="option in zoomSteps" :key="option" :value="option">{{ option }}</option>
             </select>
           </form>
-          <TheButton @click="zoomOut">-</TheButton>
-          <TheButton @click="zoomIn">+</TheButton>
+          <TheButton class="flex h-8 w-8 items-center justify-center" @click="zoomOut()">-</TheButton>
+          <TheButton class="flex h-8 w-8 items-center justify-center" @click="zoomIn()">+</TheButton>
         </div>
       </div>
-      <div v-for="polygon in polygons" :key="polygon.id" class="flex items-center justify-between gap-4">
+      <div v-for="polygon in polygons" :key="polygon.id" class="grid grid-cols-polygon items-center gap-4">
         <p>{{ polygon.id }} - {{ polygon.points.join(" ") }}</p>
         <form>
           <label class="sr-only" for="fill">Fill</label>
@@ -330,18 +366,61 @@ onBeforeUnmount(() => {
         </form>
         <div class="flex shrink-0 items-center gap-2">
           <TheButton
-            class="shrink-0"
             :class="{ 'bg-slate-100 text-slate-950': activeElementId === polygon.id }"
+            class="shrink-0"
             @click="setActivePolygon(polygon.id)"
           >
             Set active
           </TheButton>
           <TheButton @click="copyPoints(polygon)">{{ copied.has(polygon.id) ? "Copied" : "Copy" }}</TheButton>
 
-          <AlertDialogRoot :open="dialogElementId === polygon.id">
+          <DialogRoot :open="editDialogElementId === polygon.id">
+            <DialogTrigger as-child>
+              <TheButton @click="openUpdatePolygonDialog(polygon.id)">Edit</TheButton>
+            </DialogTrigger>
+            <DialogPortal>
+              <DialogOverlay class="fixed inset-0 z-30 bg-slate-950/90 data-[state=open]:animate-overlayShow" />
+              <DialogContent
+                class="fixed left-1/2 top-1/2 z-50 max-h-[85vh] w-[90vw] max-w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-slate-950 p-6 text-base focus:outline-none data-[state=open]:animate-contentShow"
+              >
+                <DialogTitle class="m-0 text-lg font-semibold text-slate-50">Edit polygon</DialogTitle>
+                <DialogDescription class="mb-5 mt-4 text-sm leading-normal text-slate-50"
+                  >Edit the points of the polygon.</DialogDescription
+                >
+                <div class="grid gap-4 py-4">
+                  <Label class="sr-only" for="points">Edit points</Label>
+                  <textarea
+                    id="points"
+                    rows="2"
+                    class="col-span-3 rounded-lg border border-slate-50 bg-slate-900 px-2 py-1 text-slate-50 transition-colors hocus:bg-slate-800"
+                    v-model="editDialogPoints"
+                  />
+                </div>
+                <div class="flex justify-end gap-6">
+                  <DialogClose as-child>
+                    <TheButton
+                      class="inline-flex items-center justify-center rounded bg-slate-950 px-4 py-2 text-slate-50 outline-none transition-colors hocus:bg-slate-800"
+                      @click="updatePolygon(polygon.id)"
+                    >
+                      Save changes
+                    </TheButton>
+                  </DialogClose>
+                  <DialogClose
+                    class="absolute right-[10px] top-[10px] inline-flex h-[25px] w-[25px] appearance-none items-center justify-center rounded-full text-slate-50 hover:bg-slate-800 focus:shadow-[0_0_0_2px] focus:shadow-slate-800 focus:outline-none"
+                    aria-label="Close"
+                    @click="closeUpdatePolygonDialog()"
+                  >
+                    X
+                  </DialogClose>
+                </div>
+              </DialogContent>
+            </DialogPortal>
+          </DialogRoot>
+
+          <AlertDialogRoot :open="deleteDialogElementId === polygon.id">
             <AlertDialogTrigger as-child>
-              <TheButton @click="dialogElementId = polygon.id">Delete</TheButton></AlertDialogTrigger
-            >
+              <TheButton @click="deleteDialogElementId = polygon.id">Delete</TheButton>
+            </AlertDialogTrigger>
             <AlertDialogPortal>
               <AlertDialogOverlay class="fixed inset-0 z-30 bg-slate-950/90 data-[state=open]:animate-overlayShow" />
               <AlertDialogContent
@@ -356,7 +435,7 @@ onBeforeUnmount(() => {
                 <div class="flex justify-end gap-6">
                   <AlertDialogCancel
                     class="inline-flex items-center justify-center rounded bg-slate-950 px-4 py-2 text-slate-50 outline-none transition-colors hocus:bg-slate-800"
-                    @click="dialogElementId = null"
+                    @click="deleteDialogElementId = null"
                   >
                     Cancel
                   </AlertDialogCancel>
