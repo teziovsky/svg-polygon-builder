@@ -7,7 +7,6 @@ import {
   AlertDialogDescription,
   AlertDialogOverlay,
   AlertDialogPortal,
-  Label,
   AlertDialogRoot,
   AlertDialogTitle,
   AlertDialogTrigger,
@@ -19,6 +18,7 @@ import {
   DialogRoot,
   DialogTitle,
   DialogTrigger,
+  Label,
 } from "radix-vue";
 import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from "vue";
 
@@ -128,8 +128,8 @@ function addPoint(event: MouseEvent) {
   const adjustedCursorX = (cursorX - positionX) / zoom.value;
   const adjustedCursorY = (cursorY - positionY) / zoom.value;
 
-  const resultY = Math.round((adjustedCursorY / canvasMaxY) * 1000 * zoom.value) / 10;
-  const resultX = Math.round((adjustedCursorX / canvasMaxX) * 1000 * zoom.value) / 10;
+  const resultY = ((adjustedCursorY / canvasMaxY) * 1000 * zoom.value) / 10;
+  const resultX = ((adjustedCursorX / canvasMaxX) * 1000 * zoom.value) / 10;
 
   const polygon = polygons.value.find((polygon) => polygon.id === activeElementId.value);
 
@@ -385,15 +385,15 @@ onBeforeUnmount(() => {
               >
                 <DialogTitle class="m-0 text-lg font-semibold text-slate-50">Edit polygon</DialogTitle>
                 <DialogDescription class="mb-5 mt-4 text-sm leading-normal text-slate-50"
-                  >Edit the points of the polygon.</DialogDescription
-                >
+                  >Edit the points of the polygon.
+                </DialogDescription>
                 <div class="grid gap-4 py-4">
                   <Label class="sr-only" for="points">Edit points</Label>
                   <textarea
                     id="points"
-                    rows="2"
-                    class="col-span-3 rounded-lg border border-slate-50 bg-slate-900 px-2 py-1 text-slate-50 transition-colors hocus:bg-slate-800"
                     v-model="editDialogPoints"
+                    class="col-span-3 rounded-lg border border-slate-50 bg-slate-900 px-2 py-1 text-slate-50 transition-colors hocus:bg-slate-800"
+                    rows="2"
                   />
                 </div>
                 <div class="flex justify-end gap-6">
@@ -406,8 +406,8 @@ onBeforeUnmount(() => {
                     </TheButton>
                   </DialogClose>
                   <DialogClose
-                    class="absolute right-[10px] top-[10px] inline-flex h-[25px] w-[25px] appearance-none items-center justify-center rounded-full text-slate-50 hover:bg-slate-800 focus:shadow-[0_0_0_2px] focus:shadow-slate-800 focus:outline-none"
                     aria-label="Close"
+                    class="absolute right-[10px] top-[10px] inline-flex h-[25px] w-[25px] appearance-none items-center justify-center rounded-full text-slate-50 hover:bg-slate-800 focus:shadow-[0_0_0_2px] focus:shadow-slate-800 focus:outline-none"
                     @click="closeUpdatePolygonDialog()"
                   >
                     X
